@@ -1,0 +1,136 @@
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <iomanip>
+
+struct Task {
+    std::string title;
+    std::string description;
+    std::string dueDate;
+    std::string priority;
+    std::string category;
+    std::string status;
+};
+
+class ToDoList {
+private:
+    std::vector<Task> tasks;
+
+public:
+    void addTask() {
+        Task newTask;
+
+        std::cout << "Title: ";
+        std::getline(std::cin, newTask.title);
+
+        std::cout << "Description: ";
+        std::getline(std::cin, newTask.description);
+
+        std::cout << "Due Date (YYYY-MM-DD): ";
+        std::getline(std::cin, newTask.dueDate);
+
+        std::cout << "Priority (Low/Medium/High): ";
+        std::getline(std::cin, newTask.priority);
+
+        std::cout << "Category: ";
+        std::getline(std::cin, newTask.category);
+
+        newTask.status = "New";
+
+        tasks.push_back(newTask);
+        saveTasks();
+        std::cout << "Task added successfully.\n";
+    }
+
+    void displayTasks() {
+        if (tasks.empty()) {
+            std::cout << "No tasks available.\n";
+            return;
+        }
+
+        std::cout << std::setw(5) << "ID" << std::setw(20) << "Title" << std::setw(15) << "Due Date"
+                  << std::setw(10) << "Priority" << std::setw(15) << "Category" << std::setw(15) << "Status" << std::endl;
+
+        for (size_t i = 0; i < tasks.size(); ++i) {
+            std::cout << std::setw(5) << i + 1 << std::setw(20) << tasks[i].title << std::setw(15) << tasks[i].dueDate
+                      << std::setw(10) << tasks[i].priority << std::setw(15) << tasks[i].category
+                      << std::setw(15) << tasks[i].status << std::endl;
+        }
+    }
+
+    void updateStatus() {
+        displayTasks();
+
+        int taskId;
+        std::cout << "Enter the ID of the task you want to update: ";
+        std::cin >> taskId;
+        std::cin.ignore();
+
+        if (taskId >= 1 && static_cast<size_t>(taskId) <= tasks.size()) {
+            std::cout << "Update Status (New/In Progress/Completed): ";
+            std::getline(std::cin, tasks[taskId - 1].status);
+
+            saveTasks();
+            std::cout << "Status updated successfully.\n";
+        } else {
+            std::cout << "Invalid task ID.\n";
+        }
+    }
+
+    void saveTasks() {
+        std::ofstream file("tasks.txt");
+
+        for (const auto &task : tasks) {
+            file << task.title << ',' << task.description << ',' << task.dueDate << ',' << task.priority
+                 << ',' << task.category << ',' << task.status << '\n';
+        }
+    }
+
+    void loadTasks() {
+        std::ifstream file("tasks.txt");
+        tasks.clear();
+
+        Task task;
+        while (std::getline(file, task.title, ',')) {
+            std::getline(file, task.description, ',');
+            std::getline(file, task.dueDate, ',');
+            std::getline(file, task.priority, ',');
+            std::getline(file, task.category, ',');
+            std::getline(file, task.status);
+
+            tasks.push_back(task);
+        }
+    }
+};
+
+int main() {
+    ToDoList todoList;
+    todoList.loadTasks();
+
+    int choice;
+    do {
+        std::cout << "1. Add Task\n2. Display Tasks\n3. Update Task Status\n4. Exit\n";
+        std::cout << "Enter your choice: ";
+        std::cin >> choice;
+        std::cin.ignore();
+
+        switch (choice) {
+            case 1:
+                todoList.addTask();
+                break;
+            case 2:
+                todoList.displayTasks();
+                break;
+            case 3:
+                todoList.updateStatus();
+                break;
+            case 4:
+                std::cout << "Exiting the application.\n";
+                break;
+            default:
+                std::cout << "Invalid choice. Please try again.\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}
